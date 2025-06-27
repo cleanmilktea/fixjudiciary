@@ -1,0 +1,156 @@
+// ==UserScript==
+// @name         Judiciary No Context & Annotations Buttons (A/B Logic)
+// @namespace    http://tampermonkey.net/
+// @version      1.2
+// @description  Show "No Context" and/or "Annotations" on judiciary pages (A/B logic)
+// @author       You
+// @match        https://legalref.judiciary.hk/lrs/common/search/search_result_detail_frame.jsp*
+// @match        https://legalref.judiciary.hk/lrs/common/search/ju_bottom.jsp*
+// @match        https://legalref.judiciary.hk/lrs/common/ju/ju_frame.jsp*
+// @license      MIT
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    let buttonAdded = false;
+
+    function getDisValue(doc) {
+        let dis = null;
+        try {
+            dis = new URLSearchParams(doc.location.search).get('DIS');
+        } catch (e) {}
+        if (!dis) {
+            const hiddenDIS = doc.querySelector && doc.querySelector('input[name="DIS"]');
+            if (hiddenDIS) dis = hiddenDIS.value;
+        }
+        return dis;
+    }
+
+    function addButtons({ showNoContext, showAnnotations }, doc) {
+        if (!doc) doc = document;
+        // Prevent adding button if already added
+        if (doc._buttonsAdded) return;
+
+        // Find navigation cell
+        const navCell = doc.querySelector('td[nowrap=""]');
+        if (!navCell) return;
+
+        // Avoid duplicates
+        if (
+            (showNoContext && navCell.querySelector('a[data-no-context="true"]')) ||
+            (showAnnotations && navCell.querySelector('a[data-annotations="true"]'))
+        ) return;
+
+        const disValue = getDisValue(doc);
+        if (!disValue) return;
+
+        let needSep = false;
+
+        // Add No Context button if needed
+        if (showNoContext && !navCell.querySelector('a[data-no-context="true"]')) {
+            if (needSep) navCell.appendChild(document.createTextNode(' | '));
+            navCell.appendChild(document.createTextNode(' | '));
+            const noContextLink = doc.createElement('a');
+            noContextLink.href = 'javascript:void(0)';
+            noContextLink.className = 'default';
+            noContextLink.style.fontSize = '10pt';
+            noContextLink.textContent = 'No Context';
+            noContextLink.setAttribute('data-no-context', 'true');
+            noContextLink.onclick = function() {
+                window.top.location.href = `https://legalref.judiciary.hk/lrs/common/ju/ju_frame.jsp?DIS=${disValue}`;
+            };
+            navCell.appendChild(noContextLink);
+            needSep = true;
+        }
+
+        // Add Annotations button if needed
+        if (showAnnotations && !navCell.querySelector('a[data-annotations="true"]')) {
+            if (needSep) navCell.appendChild(document.createTextNode(' | '));
+            else navCell.appendChild(document.createTextNode(' | '));
+            const annotationsLink = doc.createElement('a');
+            annotationsLink.href = 'javascript:void(0)';
+            annotationsLink.className = 'default';
+            annotationsLink.style.fontSize = '10pt';
+            annotationsLink.textContent = 'Annotations';
+            annotationsLink.setAttribute('data-annotations', 'true');
+            annotationsLink.onclick = function() {
+                window.top.location.href = `https://legalref.judiciary.hk/lrs/common/ju/ju_body.jsp?DIS=${disValue}&AH=&QS=&FN=&currpage=#`;
+            };
+            navCell.appendChild(annotationsLink);
+        }
+
+        doc._buttonsAdded = true;
+    }
+
+    function tryInjectInFrame(frame, opts) {
+        try {
+            if (frame && frame.document) {
+                addButtons(opts, frame.document);
+            }
+        } catch (e) {
+            // Ignore cross-origin
+        }
+    }
+
+    function main() {
+        if (buttonAdded) return;
+
+        const path = window.location.pathname;
+        const isTypeA = path.includes('search_result_detail_frame.jsp');
+        const isTypeB = path.includes('ju_frame.jsp');
+        const isBottom = path.includes('ju_bottom.jsp');
+
+        // --- TYPE A ---
+        if (isTypeA && !buttonAdded) {
+            // Try to inject into bottomFrame after load
+            setTimeout(function() {
+                tryInjectInFrame(window.frames['bottomFrame'], { showNoContext: true, showAnnotations: true });
+                buttonAdded = true;
+            }, 1000);
+        }
+
+        // --- TYPE B ---
+        if (isTypeB && !buttonAdded) {
+            // Try to inject into bottomFrame (if exists), else self (for single-frame version)
+            if (window.frames['bottomFrame']) {
+                setTimeout(function() {
+                    tryInjectInFrame(window.frames['bottomFrame'], { showNoContext: false, showAnnotations: true });
+                    buttonAdded = true;
+                }, 1000);
+            } else {
+                addButtons({ showNoContext: false, showAnnotations: true }, document);
+                buttonAdded = true;
+            }
+        }
+
+        // --- ju_bottom.jsp (frame itself) ---
+        if (isBottom && !buttonAdded) {
+            // Infer parent type, best effort
+            let showNoContext = false, showAnnotations = false;
+            try {
+                const parentPath = window.parent.location.pathname;
+                if (parentPath.includes('search_result_detail_frame.jsp')) {
+                    showNoContext = true; showAnnotations = true;
+                }
+                if (parentPath.includes('ju_frame.jsp')) {
+                    showNoContext = false; showAnnotations = true;
+                }
+            } catch (e) { showAnnotations = true; } // fallback, safest to show Annotations
+
+            addButtons({ showNoContext, showAnnotations }, document);
+            buttonAdded = true;
+        }
+    }
+
+    // Run when page loads (only once)
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', main);
+    } else {
+        main();
+    }
+
+    // Fallback delayed attempt
+    setTimeout(main, 2000);
+})();
