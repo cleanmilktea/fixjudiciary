@@ -9,6 +9,6 @@ Do step 2 above by copying and pasting each script into Tampermonkey: click the 
 
 3. Follow instructions at https://www.tampermonkey.net/faq.php?locale=en#Q209 to enable userscripts.
 
-4. Enjoy opening tabs and not windows in the year 202x
+4. Enjoy opening tabs and not independent windows in the year 202x
 
 *NB if have installed the hypothes.is + no context buttons script no need to install standalone no context script
