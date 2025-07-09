@@ -7,6 +7,8 @@ Installation instructions:
    
 Do step 2 above by copying and pasting each script into Tampermonkey: click the Tampermonkey extension icon > create a new script > paste > ctrl+s (windows) or cmd+s (mac) to save.
 
-3. Enjoy opening tabs and not windows in the year 202x
+3. Follow instructions at https://www.tampermonkey.net/faq.php?locale=en#Q209 to enable userscripts.
+
+4. Enjoy opening tabs and not windows in the year 202x
 
 *NB if have installed the hypothes.is + no context buttons script no need to install standalone no context script
