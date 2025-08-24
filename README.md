@@ -25,4 +25,8 @@ To install, click the Tampermonkey extension icon in your extensions toolbar > c
 The first 3 scripts affect the judiciary website and the final one affects HKLII.
 
 *NB for judiciary website, if have installed the hypothes.is + no context buttons script (2) no need to install standalone judiciary no context script (1)
-*NB for HKLII, be careful when clicking the "clean url" button, sometimes takes you to different judgment than the one you were just on, depending on your search path
+*NB for HKLII:
+
+1. be careful when clicking the "clean url" button, sometimes takes you to different judgment than the one you were just on, depending on your search path
+2. if not opening judgments in new tab from search, refresh tab before "clean url" button shows up at top of page
+3. if your page is zoomed in too much, button will not appear. to be safe, load page at default zoom (100%)
