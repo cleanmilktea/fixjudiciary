@@ -22,7 +22,7 @@ To install, click the Tampermonkey extension icon in your extensions toolbar > c
 
 4. Enjoy opening tabs and not independent windows in the year 202x
 
-The first 3 scripts affect the judiciary website and the final one affects HKLII.
+The first 3 scripts affect the judiciary website and the final one affects HKLII. The intention and utility of the scripts in the repo should be self-evident. If they are not, you probably only need script (3).
 
 *NB for judiciary website, if have installed the hypothes.is + no context buttons script (2) no need to install standalone judiciary no context script (1)
 
