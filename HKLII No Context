@@ -1,0 +1,64 @@
+// ==UserScript==
+// @name         HKLII Clean URL Button (Universal, All /en/cases/*)
+// @namespace    http://tampermonkey.net/
+// @version      1.5
+// @description  Add "Clean URL" button to any HKLII /en/cases/* page, next to CLASSIC or fixed top-right. Always goes to the current page without query/hash.
+// @author       m
+// @match        https://www.hklii.hk/en/cases*
+// @icon         https://www.hklii.hk/favicon.ico
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // Only show the button if there is a query string or hash
+    if (!location.search && !location.hash) return;
+
+    // Only on /en/cases URLs (should match all cases, including /hkdc/, /hkldt/, etc.)
+    if (!location.pathname.startsWith('/en/cases')) return;
+
+    // Build the clean URL (current origin and path, no query string or hash)
+    const cleanUrl = location.origin + location.pathname;
+
+    // Create the button styled like the nav
+    const cleanBtn = document.createElement('a');
+    cleanBtn.innerText = 'CLEAN URL';
+    cleanBtn.href = cleanUrl;
+    cleanBtn.title = 'Reload this page without highlights, filters, or search';
+    cleanBtn.style.display = 'inline-block';
+    cleanBtn.style.verticalAlign = 'middle';
+    cleanBtn.style.marginLeft = '14px';
+    cleanBtn.style.fontWeight = '500';
+    cleanBtn.style.letterSpacing = '0.05em';
+    cleanBtn.style.textTransform = 'uppercase';
+    cleanBtn.style.color = '#6a3131';
+    cleanBtn.style.fontSize = '1em';
+    cleanBtn.style.background = 'none';
+    cleanBtn.style.border = 'none';
+    cleanBtn.style.cursor = 'pointer';
+    cleanBtn.style.padding = '0';
+    cleanBtn.style.textDecoration = 'none';
+    cleanBtn.onmouseover = function() { cleanBtn.style.textDecoration = 'underline'; };
+    cleanBtn.onmouseout = function() { cleanBtn.style.textDecoration = 'none'; };
+
+    // Try to insert after the CLASSIC link, if present
+    let classicBtn = Array.from(document.querySelectorAll('a')).find(a =>
+        (a.textContent.trim().toUpperCase() === 'CLASSIC') ||
+        (a.href && a.href.toLowerCase().includes('classic.hklii.hk'))
+    );
+    if (classicBtn) {
+        classicBtn.parentNode.insertBefore(cleanBtn, classicBtn.nextSibling);
+    } else {
+        // fallback: fixed top right
+        document.body.appendChild(cleanBtn);
+        cleanBtn.style.position = 'fixed';
+        cleanBtn.style.top = '12px';
+        cleanBtn.style.right = '16px';
+        cleanBtn.style.background = '#fff';
+        cleanBtn.style.padding = '8px 14px';
+        cleanBtn.style.borderRadius = '6px';
+        cleanBtn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.10)';
+        cleanBtn.style.zIndex = '99999';
+    }
+})();
